@@ -1,0 +1,12 @@
+menu "Wifi Configuration"
+
+config WIFI_SSID
+    string "wifi ssid"
+    default "XXXXXXXX"
+
+config WIFI_PASSWORD
+    string "wifi password"
+    default "12345678"
+
+endmenu
+
