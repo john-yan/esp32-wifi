@@ -1,4 +1,4 @@
-menu "Wifi Configuration"
+menu "esp32-wifi Configuration"
 
 config WIFI_SSID
     string "wifi ssid"

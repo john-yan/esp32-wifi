@@ -39,7 +39,7 @@ esp_err_t Wifi::default_wifi_handler(void *ctx, system_event_t *event) {
 
 void Wifi::init() {
 
-  registry.reserve(SYSTEM_EVENT_MAX);
+  registry.resize(SYSTEM_EVENT_MAX);
 
   tcpip_adapter_init();
 
