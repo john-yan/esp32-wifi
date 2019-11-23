@@ -1,20 +1,20 @@
 #include "esp_log.h"
-#include "wifi.h"
-#include "constants.h"
-#include "utils.h"
+#include "esp32-wifi.h"
+#include "esp_event_loop.h"
 #include <string.h>
 
-#define TAG "WifiSta"
+#define TAG "ESP32-WIFI"
 
-esp_err_t WifiSta::defaultWifiHandler(void *ctx, system_event_t *event) {
+#define CHECK_NOT_NULL(p) assert(p != NULL)
+esp_err_t Wifi::default_wifi_handler(void *ctx, system_event_t *event) {
 
-  WifiSta* wifi = reinterpret_cast<WifiSta*>(ctx);
+  Wifi* wifi = reinterpret_cast<Wifi*>(ctx);
   CHECK_NOT_NULL(wifi);
 
   wifi_call_back_info_t info = wifi->registry[event->event_id];
 
   if (info.handler) {
-    return info.handler(info.ctx, event);
+    return info.handler(event, info.ctx);
   }
 
   // no handler is provided
@@ -37,14 +37,14 @@ esp_err_t WifiSta::defaultWifiHandler(void *ctx, system_event_t *event) {
   return ESP_OK;
 }
 
-void WifiSta::Init() {
+void Wifi::init() {
 
   registry.reserve(SYSTEM_EVENT_MAX);
 
   tcpip_adapter_init();
 
   // TODO: Wifi event handler
-  ESP_ERROR_CHECK(esp_event_loop_init(defaultWifiHandler, this) );
+  ESP_ERROR_CHECK(esp_event_loop_init(default_wifi_handler, this));
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -61,8 +61,10 @@ void WifiSta::Init() {
   ESP_LOGI(TAG, "connect to ap SSID:%s password:%s", WIFI_SSID, WIFI_PASSWORD);
 }
 
-void WifiSta::onEvent(system_event_id_t event_id, wifiHandler _handler, void *ctx) {
-  wifi_call_back_info_t info = {_handler, ctx};
-  registry[event_id] = info;
+Wifi::wifi_call_back_info_t Wifi::onEvent(system_event_id_t event_id, wifi_handler_t _handler, void *ctx) {
+  assert(event_id >= SYSTEM_EVENT_WIFI_READY && event_id < SYSTEM_EVENT_MAX);
+  wifi_call_back_info_t old_info = registry[event_id];
+  registry[event_id] = {_handler, ctx};
+  return old_info;
 }
 
